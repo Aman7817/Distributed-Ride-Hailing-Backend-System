@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  backend:
+    build: .
+    container_name: cab-backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: cab-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
