@@ -16,11 +16,11 @@ app.use(cors({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Serve static files from the "backend" folder (for testing purpose)
-app.use(express.static(path.join(__dirname, "Backend"))); // Backend folder ko static serve karenge
+// app.use(express.static(path.join(__dirname, "Backend"))); // Backend folder ko static serve karenge
 
 // Default route
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "Backend", "index.html"));
+    res.send("Welcome to the backend server!"); // Send a welcome message when the root URL is accessed
 });
 // Middleware to parse JSON bodies in incoming requests
 // The 'limit' option restricts the maximum size of the JSON payload
