@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   backend:
-    build: .
+    image: aman7817/cab-booking-backend:latest
     container_name: cab-backend
     ports:
       - "8001:8001"
