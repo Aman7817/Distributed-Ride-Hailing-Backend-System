@@ -3,7 +3,7 @@ name: Node CI Pipeline
 on:
   push:
     branches: [main]
-
+  workflow_dispatch:
 
 jobs:
   build-and-push: 
@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -43,4 +43,23 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/cab-booking-backend:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/cab-booking-backend:${{ github.sha }}
 
-  
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to EC2 
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/Cab-Booking-Webapllication/Backend
+            echo "🚀 Starting deployment..."
+            docker-compose pull
+            docker-compose up -d
+            docker system prune -f
+            echo "✅ Deployment completed!"
+            docker-compose ps
