@@ -57,9 +57,14 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/Cab-Booking-Webapllication/Backend
-            echo "🚀 Starting deployment..."
-            docker-compose pull
-            docker-compose up -d
-            docker system prune -f
+            echo "Starting deployment..."
+            echo "Pulling latest Docker image..."
+            docker compose pull backend
+            echo "Restarting Docker containers..."
+            docker compose down backend
+            echo "Starting backend container..."
+            docker compose up -d backend
+            echo "Cleaning up unused Docker resources..."
+            docker system prune -f 
             echo "✅ Deployment completed!"
-            docker-compose ps
+            docker compose ps
