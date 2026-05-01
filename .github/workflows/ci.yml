@@ -56,7 +56,8 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/Cab-Booking-Webapllication/Backend
+            cd /home/ubuntu/
+            Distributed-Ride-Hailing-Backend-System/Backend 
             echo "Starting deployment..."
             echo "Pulling latest Docker image..."
             docker compose pull backend
