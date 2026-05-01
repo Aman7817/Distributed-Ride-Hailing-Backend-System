@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 // Default route
 app.get("/", (req, res) => {
-    res.send("Welcome to the latest version of the backend server!"); // Send a welcome message when the root URL is accessed
+    res.send("Welcome to the latest version of the backend server and this is deploy on ec2 server!"); // Send a welcome message when the root URL is accessed
 });
 // Middleware to parse JSON bodies in incoming requests
 // The 'limit' option restricts the maximum size of the JSON payload
