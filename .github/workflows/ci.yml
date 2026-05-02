@@ -104,7 +104,10 @@ jobs:
             docker-compose pull backend
 
             echo "Starting backend..."
-            docker-compose up -d --no-deps backend
+            docker-compose up -d 
+
+            echo "Waiting for containers to stabilize..."
+            sleep 10
 
             echo "Cleaning unused images..."
             docker system prune -f
