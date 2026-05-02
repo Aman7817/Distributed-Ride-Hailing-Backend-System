@@ -1,4 +1,4 @@
-name: Node CI Pipeline
+name: Node CI/CD Pipeline
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push: 
+  build-and-push:
     runs-on: ubuntu-latest
 
     defaults:
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
@@ -30,8 +30,8 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: login to DockerHub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin 
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
         run: |
@@ -46,25 +46,59 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
-      - name: Deploy to EC2 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 📁 Ensure folder exists on EC2
+      - name: Create directories on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/Distributed-Ride-Hailing-Backend-System/Backend
-            echo "Starting deployment..."
-            echo "Pulling latest Docker image..."
+            mkdir -p /home/ubuntu/Backend
+
+      # 📦 Copy docker-compose.yml
+      - name: Copy docker-compose.yml
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/ubuntu/"
+
+      # 📦 Copy .env file
+      - name: Copy env file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "Backend/.env"
+          target: "/home/ubuntu/Backend/"
+
+      # 🚀 Deploy using Docker Compose
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu
+
+            echo "Pulling latest image..."
             docker compose pull backend
-            echo "Restarting Docker containers..."
-            docker compose down backend
-            echo "Starting backend container..."
-            docker compose up -d backend
-            echo "Cleaning up unused Docker resources..."
-            docker system prune -f 
-            echo "✅ Deployment completed!"
+
+            echo "Starting backend..."
+            docker compose up -d --no-deps backend
+
+            echo "Cleaning unused images..."
+            docker system prune -f
+
+            echo "Running containers:"
             docker compose ps

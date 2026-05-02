@@ -1,0 +1,23 @@
+services:
+  backend:
+    image: amansingh902/cab-booking-backend:latest
+    pull_policy: always
+    container_name: cab-booking-backend
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: cab-booking-mongodb
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  
+volumes:
+  mongo_data:
