@@ -71,15 +71,24 @@ jobs:
           source: "docker-compose.yml"
           target: "/home/ubuntu/"
 
-      # 📦 Copy .env file
-      - name: Copy env file
-        uses: appleboy/scp-action@v0.1.7
+      # 🔐 Create .env file on EC2
+      - name: Create .env file on EC2
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "Backend/.env"
-          target: "/home/ubuntu/Backend/"
+          script: |
+            mkdir -p /home/ubuntu/Backend
+
+            cat <<EOF > /home/ubuntu/Backend/.env
+            PORT=8001
+            MONGODB_URI=mongodb://mongodb:27017/cab_db
+            ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}
+            REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}
+            ACCESS_TOKEN_EXPIRY=1d
+            REFRESH_TOKEN_EXPIRY=7d
+            EOF
 
       # 🚀 Deploy using Docker Compose
       - name: Deploy to EC2
